@@ -6,3 +6,5 @@ It uses, adapts and mixes code from these repositories:
 2. [language-eyetracking-jspsych](https://github.com/vassar-cogscilab/language-eyetracking-jspsych) by Josh de Leeuw
 
 The version of webgazer used is the adapted version from Yang & Krajbich, with additional modifications.
+
+The current version of the task can be run at https://moltaire.github.com/online-et-experiment, ideally running Google Chrome.
