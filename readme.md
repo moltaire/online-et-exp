@@ -7,4 +7,4 @@ It uses, adapts and mixes code from these repositories:
 
 The version of webgazer used is the adapted version from Yang & Krajbich, with additional modifications.
 
-The current version of the task can be run at https://moltaire.github.com/online-et-experiment, ideally running Google Chrome.
+The current version of the task can be run at https://moltaire.github.com/online-et-exp, ideally running Google Chrome.
