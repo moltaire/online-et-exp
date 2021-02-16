@@ -86,6 +86,7 @@ jsPsych.plugins["eye-tracking"] = (function () {
    * CALIBRATE
    ************************************/
   function calibrate(displayElement, options, callback) {
+    console.log("Started `calibrate`.");
     /** Setup variables */
     var numPoints = options.numPoints || 6;
     var duration = options.duration || 10;
@@ -109,14 +110,18 @@ jsPsych.plugins["eye-tracking"] = (function () {
     webgazer.showFaceOverlay(doVideo);
     webgazer.showFaceFeedbackBox(doVideo);
 
+    console.log("  `calibrate`: Set inner HTML and set up webgazer.");
+
     /** Helper functions */
     function calibrationLoop(callback) {
+      console.log("  `calibrate`: `calibrationLoop` started.");
       if (points.length == 0) {
         callback();
         return;
       }
 
       var point = points.pop();
+      console.log("  current point", point);
       calibration_cnt.html(duration);
       calibration_dot.css({ left: point.x, top: point.y });
 
@@ -157,9 +162,10 @@ jsPsych.plugins["eye-tracking"] = (function () {
         calibrationLoop(callback);
       });
     }
-
+    console.log("  `calibrate`: Starting calibration loop.");
     wait(1000, function () {
       calibration_dot.show();
+      console.log("  Calibration dot shown.");
       calibrationLoop(function () {
         displayElement.innerHTML = "";
         webgazer.showPredictionPoints(showPoint);
@@ -369,6 +375,13 @@ jsPsych.plugins["eye-tracking"] = (function () {
         default: 0.7,
         description: "criterion set for the validation ",
       },
+      face_detect_threshold: {
+        type: jsPsych.plugins.parameterType.IMAGE,
+        pretty_name: "Face Detection Threshold",
+        default: 0.8,
+        description:
+          "A value between 0-1 representing the quality of the face detection that must be achieved before moving to calibration.",
+      },
     },
   };
 
@@ -377,8 +390,6 @@ jsPsych.plugins["eye-tracking"] = (function () {
 
     function startWebgazer(callback) {
       if (trial.doInit) {
-        display_element.innerHTML =
-          "<div> Before you begin the calibration, please wait until the video feed appears on your screen. <br></br> Follow the previous tips to adjust your position relative to your webcam. <br></br> When you are ready, please press the <b>SPACE BAR</b> to continue.</div>";
         //  Webcam is ready, please press the spacebar to continue
         //begin webgazer and also set up webgazer parameter
         webgazer.begin(function (err) {
@@ -389,15 +400,53 @@ jsPsych.plugins["eye-tracking"] = (function () {
           //webgazer.setRegression('ridge');
           webgazer.setRegression("threadedRidge");
           //webgazer.params.showVideo = trial.doVideo;
-
-          //   webgazer.params.showFaceOverlay = false;
-          var onkeyup = function (e) {
-            if (e.keyCode == 32) {
-              removeEventListener("keyup", onkeyup);
+          var faceOk = false;
+          var done = false;
+          function detectFaceLoop() {
+            if (!done) {
+              show_video_detect_message();
+              var wg_container = display_element.querySelector(
+                "#webgazer-calibrate-container"
+              );
+              var score = check_face_score();
+              wg_container.querySelector(
+                "#video-detect-quality-inner"
+              ).style.width = score * 100 + "%";
+            }
+            if (score > trial.face_detect_threshold) {
+              if (!faceOk) {
+                faceOk = true;
+                console.log("Face-detection score above threshold.");
+              }
+            } else {
+              if (score < trial.face_detect_threshold) {
+                if (faceOk) {
+                  faceOk = false;
+                  console.log("Face-detection score below threshold.");
+                }
+              }
+            }
+            // Stop loop if done
+            if (!done) {
+              requestAnimationFrame(detectFaceLoop);
+            } else {
+              display_element.innerHTML = "";
+              console.log("Face-detection loop stopped. (inside)");
               callback();
+              console.log("Callback called.");
+            }
+          }
+          // continue if spacebar pressed
+          var onkeyup = function (e) {
+            if (e.keyCode == 32 && faceOk) {
+              console.log("Face-detection done.");
+              done = true;
+              removeEventListener("keyup", onkeyup);
             }
           };
           addEventListener("keyup", onkeyup);
+          console.log("Face-detection loop started.");
+          requestAnimationFrame(detectFaceLoop);
         });
       } else {
         webgazer.resume();
@@ -452,6 +501,37 @@ jsPsych.plugins["eye-tracking"] = (function () {
       }
     }
 
+    function show_video_detect_message() {
+      var html =
+        "<div id='webgazer-calibrate-container' style='position: relative; width:95vw; height:95vh;'>";
+      html += "</div>";
+
+      display_element.innerHTML = html;
+
+      var wg_container = display_element.querySelector(
+        "#webgazer-calibrate-container"
+      );
+
+      wg_container.innerHTML =
+        "<div style='position: absolute; top: 50%; left: calc(50% - 350px); transform: translateY(-50%); width:700px;'>" +
+        "<p>To start, you need to position your head so that the webcam has a good view of your eyes.</p>" +
+        "<img src='img/et-instructions/et-instruct_1.png' width=100%>" +
+        "<p>Use the video in the upper-left corner as a guide. Center your face in the box.</p>" +
+        "<p>Once you reached the necessary quality as indicated by the meter below, press the <b>SPACE BAR</b> to continue</p>" +
+        "<p>Quality of detection:</p>" +
+        "<div id='video-detect-quality-container' style='width:700px; height: 20px; background-color:#ccc; position: relative;'>" +
+        "<div id='video-detect-quality-inner' style='width:0%; height:20px; background-color: #5c5;'></div>" +
+        "<div id='video-detect-threshold' style='width: 1px; height: 20px; background-color: #f00; position: absolute; top:0; left:" +
+        trial.face_detect_threshold * 100 +
+        "%;'></div>" +
+        "</div>" +
+        "</div>";
+    }
+
+    function check_face_score() {
+      return webgazer.getTracker().clm.getScore();
+    }
+
     startWebgazer(function (err) {
       if (err) {
         console.log(err);
@@ -475,6 +555,7 @@ jsPsych.plugins["eye-tracking"] = (function () {
               webgazer.showFaceOverlay(trial.showVideoInterTrial);
               webgazer.showFaceFeedbackBox(trial.showVideoInterTrial);
               webgazer.showVideo(trial.doVideo);
+              console.log("Starting calibration");
               startCalibration(function (calibrationData) {
                 optionalWait(
                   trial.doCalibration && trial.doValidation,
@@ -484,7 +565,7 @@ jsPsych.plugins["eye-tracking"] = (function () {
                       display_element,
                       trial.doCalibration && trial.doValidation,
                       function () {
-                        console.log("starting validation");
+                        console.log("Starting validation");
                         startValidation(function (validationData) {
                           var data = {
                             validationPoints: JSON.stringify(
