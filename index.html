@@ -201,14 +201,34 @@
 
       gambleChoice = {
         type: "two-gamble-choice",
-        stimulus: { p0: 0.7, p1: 0.5, m0: 0.4, m1: 0.9 },
+        stimulus: function () {
+          stim = {
+            p0: jsPsych.randomization.sampleWithoutReplacement(
+              [0.6, 0.7, 0.8, 0.9],
+              1
+            ),
+            p1: jsPsych.randomization.sampleWithoutReplacement(
+              [0.1, 0.2, 0.3, 0.4],
+              1
+            ),
+            m0: jsPsych.randomization.sampleWithoutReplacement(
+              [0.1, 0.2, 0.3, 0.4],
+              1
+            ),
+            m1: jsPsych.randomization.sampleWithoutReplacement(
+              [0.6, 0.7, 0.8, 0.9],
+              1
+            ),
+          };
+          return stim;
+        },
         choices: ["F", "J"],
-        trial_duration: 5000,
+        trial_duration: 10000,
       };
 
       trial_procedure = {
         timeline: [fixation, gambleChoice],
-        repetitions: 1,
+        repetitions: 10,
       };
 
       images = [
