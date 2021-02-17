@@ -94,7 +94,7 @@
             validationTol: validationTols[calibrationAttempt],
             doFaceDetection: true,
             faceDetectionThreshold: 0.7,
-            showWebgazerPrediction: false,
+            showWebgazerPrediction: true,
             calibrationMessage: `<div>
                 <h1>Step 2: Calibration</h1>
                 We will now perform the eye tracking calibration.<br>
@@ -114,6 +114,15 @@
                 <br><br>
                 Press <b>SPACE BAR</b> to start.
                 </div>`,
+            faceDetectionMessage: `<h1>Step 1: Camera setup</h1>
+                <p>To start, you need to position your head so that the webcam has a good view of your eyes.</p>
+                <p>Use the video in the upper-left corner as a guide. Center your face in the box.</p>
+                <p>The goal is to align the green face-mask with your face, <b>especially your eyes</b> like this:</p>
+                <img src='img/et-instructions/et-instruct_0.png' width=20%>
+                <p>Use these tips to achieve a good quality fit:<p>
+                <img src='img/et-instructions/et-instruct_1.png' width=100%>
+                <p>Try to change the lighting if you cannot achieve a good quality fit.</p>
+                <p>Once you reached the necessary quality as indicated by the meter below, press the <b>SPACE BAR</b> to continue</p>`,
             on_finish: function (data) {
               console.log(
                 "Hit ratio check failed?",
@@ -217,6 +226,7 @@
         ],
         preload_images: images,
         on_finish: function () {
+          webgazer.end();
           jsPsych.data.displayData("json");
         },
       });

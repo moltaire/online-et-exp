@@ -217,7 +217,7 @@ jsPsych.plugins["eye-tracking"] = (function () {
           valid: success,
           hitRatio: hitRatio,
           hitCount: hitCount,
-          totalcount: totalCount,
+          totalCount: totalCount,
         });
         validation_dot.css({
           "background-color": success ? success_color : failure_color,
@@ -372,6 +372,20 @@ jsPsych.plugins["eye-tracking"] = (function () {
         description:
           "A value between 0-1 representing the quality of the face detection that must be achieved before moving to calibration.",
       },
+      faceDetectionMessage: {
+        type: jsPsych.plugins.parameterType.HTML_STRING,
+        pretty_name: "Face-detection message",
+        default: `<h1>Step 1: Camera setup</h1>
+        <p>To start, you need to position your head so that the webcam has a good view of your eyes.</p>
+        <p>Use the video in the upper-left corner as a guide. Center your face in the box.</p>
+        <p>The goal is to align the green face-mask with your face, <b>especially your eyes</b> like this:</p>
+        <img src='img/et-instructions/et-instruct_0.png' width=20%>
+        <p>Use these tips to achieve a good quality fit:<p>
+        <img src='img/et-instructions/et-instruct_1.png' width=100%>
+        <p>Try to change the lighting if you cannot achieve a good quality fit.</p>
+        <p>Once you reached the necessary quality as indicated by the meter below, press the <b>SPACE BAR</b> to continue</p>`,
+        description: "The message shown during the face-detection step.",
+      },
     },
   };
 
@@ -390,53 +404,7 @@ jsPsych.plugins["eye-tracking"] = (function () {
           webgazer.setRegression("threadedRidge");
 
           if (trial.doFaceDetection) {
-            var faceOk = false;
-            var done = false;
-            function detectFaceLoop() {
-              if (!done) {
-                show_video_detect_message();
-                var wg_container = display_element.querySelector(
-                  "#webgazer-calibrate-container"
-                );
-                var score = check_face_score();
-                wg_container.querySelector(
-                  "#video-detect-quality-inner"
-                ).style.width = score * 100 + "%";
-              }
-              if (score > trial.faceDetectionThreshold) {
-                if (!faceOk) {
-                  faceOk = true;
-                  console.log("Face-detection score above threshold.");
-                }
-              } else {
-                if (score < trial.faceDetectionThreshold) {
-                  if (faceOk) {
-                    faceOk = false;
-                    console.log("Face-detection score below threshold.");
-                  }
-                }
-              }
-              // Stop loop if done
-              if (!done) {
-                requestAnimationFrame(detectFaceLoop);
-              } else {
-                display_element.innerHTML = "";
-                console.log("Face-detection loop stopped. (inside)");
-                callback();
-                console.log("Callback called.");
-              }
-            }
-            // continue if spacebar pressed
-            var onkeyup = function (e) {
-              if (e.keyCode == 32 && faceOk) {
-                console.log("Face-detection done.");
-                done = true;
-                removeEventListener("keyup", onkeyup);
-              }
-            };
-            addEventListener("keyup", onkeyup);
-            console.log("Face-detection loop started.");
-            requestAnimationFrame(detectFaceLoop);
+            startFaceDetection(display_element, trial, callback);
           } else {
             // No face detection
             callback();
@@ -444,7 +412,12 @@ jsPsych.plugins["eye-tracking"] = (function () {
         });
       } else {
         webgazer.resume();
-        callback();
+        if (trial.doFaceDetection) {
+          startFaceDetection(display_element, trial, callback);
+        } else {
+          // No face detection
+          callback();
+        }
       }
     }
 
@@ -465,7 +438,6 @@ jsPsych.plugins["eye-tracking"] = (function () {
     }
 
     function startValidation(callback) {
-      addEventListener("keyup", onkeyup);
       if (trial.doValidation) {
         options = {
           points: trial.validationPoints,
@@ -480,7 +452,7 @@ jsPsych.plugins["eye-tracking"] = (function () {
           callback(data);
         });
       } else {
-        callback({});
+        callback({ points: [], history: [] });
       }
     }
 
@@ -496,29 +468,63 @@ jsPsych.plugins["eye-tracking"] = (function () {
       }
     }
 
-    function show_video_detect_message() {
-      var html =
-        "<div id='webgazer-calibrate-container' style='position: relative; width:95vw; height:95vh;'>";
-      html += "</div>";
+    function startFaceDetection(display_element, trial, callback) {
+      webgazer.showFaceOverlay(true);
+      webgazer.showFaceFeedbackBox(true);
+      webgazer.showVideo(true);
+      var faceOk = false;
+      var done = false;
+      function detectFaceLoop() {
+        if (!done) {
+          showFaceDetectionMessage(display_element, trial.faceDetectionMessage);
+          var score = checkFaceDetectionScore();
+          display_element.querySelector(
+            "#video-detect-quality-inner"
+          ).style.width = score * 100 + "%";
+        }
+        if (score > trial.faceDetectionThreshold) {
+          if (!faceOk) {
+            faceOk = true;
+            console.log("Face-detection score above threshold.");
+          }
+        } else {
+          if (score < trial.faceDetectionThreshold) {
+            if (faceOk) {
+              faceOk = false;
+              console.log("Face-detection score below threshold.");
+            }
+          }
+        }
+        // Stop loop if done
+        if (!done) {
+          requestAnimationFrame(detectFaceLoop);
+        } else {
+          display_element.innerHTML = "";
+          console.log("Face-detection loop stopped. (inside)");
+          callback();
+          console.log("Callback called.");
+        }
+      }
+      // continue if spacebar pressed
+      var onkeyup = function (e) {
+        if (e.keyCode == 32 && faceOk) {
+          console.log("Face-detection done.");
+          done = true;
+          removeEventListener("keyup", onkeyup);
+        }
+      };
+      addEventListener("keyup", onkeyup);
+      console.log("Face-detection loop started.");
+      requestAnimationFrame(detectFaceLoop);
+    }
 
-      display_element.innerHTML = html;
-
-      var wg_container = display_element.querySelector(
-        "#webgazer-calibrate-container"
-      );
-
-      wg_container.innerHTML = `
-        <div style='position: absolute; top: 50%; left: calc(50% - 400px); transform: translateY(-50%); width:800px;'>
-        <p>To start, you need to position your head so that the webcam has a good view of your eyes.</p>
-        <p>Use the video in the upper-left corner as a guide. Center your face in the box.</p>
-        <p>The goal is to align the green face-mask with your face, <b>especially your eyes</b> like this:</p>
-        <img src='img/et-instructions/et-instruct_0.png' width=20%>
-        <p>Use these tips to achieve a good quality fit:<p>
-        <img src='img/et-instructions/et-instruct_1.png' width=100%>
-        <p>Try to change the lighting if you cannot achieve a good quality fit.</p>
-        <p>Once you reached the necessary quality as indicated by the meter below, press the <b>SPACE BAR</b> to continue</p>
-        <p>Quality of detection:</p>
-        <div id='video-detect-quality-container' style='width:700px; height: 20px; background-color:#ccc; position: relative;'>
+    function showFaceDetectionMessage(display_element, message) {
+      display_element.innerHTML =
+        `
+        <div style='width:700px; height:70vh;'>` +
+        message +
+        `<p>Quality of detection:</p>
+        <div id='video-detect-quality-container' style='width:700px; height: 20px; background-color:#ccc; position: relative; align:center;'>
         <div id='video-detect-quality-inner' style='width:0%; height:20px; background-color: #5c5;'></div>
         <div id='video-detect-threshold' style='width: 1px; height: 20px; background-color: #f00; position: absolute; top:0; left:
         ${trial.faceDetectionThreshold * 100}%;'>
@@ -528,7 +534,7 @@ jsPsych.plugins["eye-tracking"] = (function () {
         `;
     }
 
-    function check_face_score() {
+    function checkFaceDetectionScore() {
       return webgazer.getTracker().clm.getScore();
     }
 
@@ -577,9 +583,10 @@ jsPsych.plugins["eye-tracking"] = (function () {
                     startValidation(function (validationData) {
                       var data = {
                         validationPoints: JSON.stringify(validationData.points),
+                        validationHistory: validationData.history,
                         accuracy: computeAccuracy(validationData.points),
-                        validationnHistory: validationData.history,
                       };
+                      console.log(data);
                       webgazer.showPredictionPoints(false);
                       webgazer.showVideo(false);
                       webgazer.showFaceFeedbackBox(false);

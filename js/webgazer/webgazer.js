@@ -11125,7 +11125,7 @@ function store_points(x, y, k) {
     //loop may run an extra time and fail due to removed elements
     paused = true;
 
-    //webgazer.stopVideo(); // uncomment if you want to stop the video from streaming
+    webgazer.stopVideo(); // uncomment if you want to stop the video from streaming
 
     //remove video element and canvas
     document.body.removeChild(videoElement);
