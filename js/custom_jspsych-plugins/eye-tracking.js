@@ -6,34 +6,18 @@ jsPsych.plugins["eye-tracking"] = (function () {
     return setTimeout(callback, ms);
   }
 
-  function optionalWait(flag, ms, callback) {
-    if (flag) {
+  function optionalWait(condition, ms, callback) {
+    if (condition) {
       setTimeout(callback, ms);
     } else {
       callback();
     }
   }
 
-  function optionalMessage(display_element, flag, callback) {
-    if (flag) {
-      display_element.innerHTML =
-        "<div>Validation starts. Press the spacebar to begin. </div>";
-      var onkeyup = function (e) {
-        if (e.keyCode == 32) {
-          removeEventListener("keyup", onkeyup);
-          callback();
-        }
-      };
-      addEventListener("keyup", onkeyup);
-    } else {
-      callback({});
-    }
-  }
-
-  function optionalMessage_interTrial(display_element, flag, callback) {
-    if (flag) {
-      display_element.innerHTML =
-        "<div>We need to re-calibrate you. Adjust your position relative to your webcam and proceed by pressing the <b>SPACE BAR</b> when you are ready.</div>";
+  function optionalMessage(display_element, html, condition, callback) {
+    if (condition) {
+      display_element.innerHTML = html;
+      console.log("Im supposed to show this message:", html);
       var onkeyup = function (e) {
         if (e.keyCode == 32) {
           removeEventListener("keyup", onkeyup);
@@ -50,50 +34,18 @@ jsPsych.plugins["eye-tracking"] = (function () {
     return Math.sqrt(x * x, y * y);
   }
 
-  function prepareReferencePoints(num) {
-    var points = utils.shuffle([
-      { x: "50%", y: "20%" },
-      { x: "80%", y: "20%" },
-      { x: "20%", y: "50%" },
-      { x: "80%", y: "50%" },
-      { x: "20%", y: "80%" },
-      { x: "50%", y: "80%" },
-      { x: "80%", y: "80%" },
-      { x: "35%", y: "35%" },
-      { x: "65%", y: "35%" },
-      { x: "35%", y: "65%" },
-      { x: "65%", y: "65%" },
-      { x: "20%", y: "20%" },
-      // {x: "45%", y: "5%"},
-      // {x: "45%", y: "35%"},
-      // {x: "15%", y: "50%"},
-      // {x: "15%", y: "60%"},
-      // {x: "15%", y: "90%"},
-      // {x: "75%", y: "60%"},
-      // {x: "75%", y: "90%"},
-      // {x: "65%", y: "35%"},
-      // {x: "35%", y: "65%"},
-      // {x: "50%", y: "80%"},
-      // {x: "80%", y: "50%"},
-    ]);
-    points.length = num;
-    // points[0] = {x: "50%", y: "50%"}; // fix the last point (points are popped in reverse order)
-    points.unshift({ x: "50%", y: "50%" });
-    return points;
-  }
-
   /************************************
    * CALIBRATE
    ************************************/
   function calibrate(displayElement, options, callback) {
     console.log("Started `calibrate`.");
     /** Setup variables */
-    var numPoints = options.numPoints || 6;
     var duration = options.duration || 10;
-    var showPoint = options.showPoint || false;
-    var doVideo = options.doVideo || true;
+    var showWebgazerPrediction = options.showWebgazerPrediction || false;
 
-    var points = prepareReferencePoints(numPoints);
+    if (options.shufflePoints) {
+      options.points = jsPsych.randomization.repeat(options.points, 1);
+    }
     var data = { history: [] };
 
     /** Setup display */
@@ -105,25 +57,22 @@ jsPsych.plugins["eye-tracking"] = (function () {
 
     /** Setup webgazer */
     webgazer.clearData();
-    webgazer.showPredictionPoints(showPoint);
-    webgazer.showVideo(doVideo);
-    webgazer.showFaceOverlay(doVideo);
-    webgazer.showFaceFeedbackBox(doVideo);
+    webgazer.showPredictionPoints(showWebgazerPrediction);
 
     console.log("  `calibrate`: Set inner HTML and set up webgazer.");
 
     /** Helper functions */
     function calibrationLoop(callback) {
       console.log("  `calibrate`: `calibrationLoop` started.");
-      if (points.length == 0) {
+      if (options.points.length == 0) {
         callback();
         return;
       }
 
-      var point = points.pop();
+      var point = options.points.pop();
       console.log("  current point", point);
       calibration_cnt.html(duration);
-      calibration_dot.css({ left: point.x, top: point.y });
+      calibration_dot.css({ left: point[0] + "%", top: point[1] + "%" });
 
       var cx = parseInt(Math.round(calibration_dot.offset().left));
       var cy = parseInt(Math.round(calibration_dot.offset().top));
@@ -168,7 +117,7 @@ jsPsych.plugins["eye-tracking"] = (function () {
       console.log("  Calibration dot shown.");
       calibrationLoop(function () {
         displayElement.innerHTML = "";
-        webgazer.showPredictionPoints(showPoint);
+        webgazer.showPredictionPoints(showWebgazerPrediction);
         callback(data);
       });
     });
@@ -179,14 +128,14 @@ jsPsych.plugins["eye-tracking"] = (function () {
    ************************************/
   function validate(displayElement, options, callback) {
     /** Setup variables */
-    var numPoints = options.numPoints || 6;
     var duration = options.duration || 10;
-    var showPoint = options.showPoint || false;
+    var showWebgazerPrediction = options.showWebgazerPrediction || false;
     var tol = options.tol || 200;
     var threshold = options.threshold || 0.7;
-    var doVideo = options.doVideo || false;
 
-    var points = prepareReferencePoints(numPoints);
+    if (options.shufflePoints) {
+      options.points = jsPsych.randomization.repeat(options.points, 1);
+    }
     var success_color = "green";
     var failure_color = "orange";
     var data = { points: [], history: [] };
@@ -200,19 +149,16 @@ jsPsych.plugins["eye-tracking"] = (function () {
 
     /** Setup webgazer */
     webgazer.clearData();
-    webgazer.showPredictionPoints(showPoint);
-    webgazer.showVideo(doVideo);
-    webgazer.showFaceOverlay(doVideo);
-    webgazer.showFaceFeedbackBox(doVideo);
+    webgazer.showPredictionPoints(showWebgazerPrediction);
 
     function validationLoop(callback) {
-      if (points.length == 0) {
+      if (options.points.length == 0) {
         callback();
         return;
       }
 
-      var point = points.pop();
-      validation_dot.css({ left: point.x, top: point.y });
+      var point = options.points.pop();
+      validation_dot.css({ left: point[0] + "%", top: point[1] + "%" });
       validation_cnt.html(duration);
 
       var cx = parseInt(Math.round(validation_dot.offset().left));
@@ -266,8 +212,8 @@ jsPsych.plugins["eye-tracking"] = (function () {
         var hitRatio = hitCount / totalCount;
         var success = hitRatio > threshold;
         data.points.push({
-          x: point.x,
-          y: point.y,
+          x: point[0],
+          y: point[1],
           valid: success,
           hitRatio: hitRatio,
           hitCount: hitCount,
@@ -287,7 +233,7 @@ jsPsych.plugins["eye-tracking"] = (function () {
       validation_dot.show();
       validationLoop(function () {
         displayElement.innerHTML = "";
-        webgazer.showPredictionPoints(showPoint);
+        webgazer.showPredictionPoints(showWebgazerPrediction);
         callback(data);
       });
     });
@@ -304,44 +250,69 @@ jsPsych.plugins["eye-tracking"] = (function () {
       doInit: {
         type: jsPsych.plugins.parameterType.BOOL,
         default: false,
-        description:
-          "whether this is the first time to load the web cam or not",
-      },
-      IsInterTrial: {
-        type: jsPsych.plugins.parameterType.BOOL,
-        default: false,
-        description: "whether this is the intertrial calibration or not",
-      },
-      doVideo: {
-        type: jsPsych.plugins.parameterType.BOOL,
-        default: false,
-        description:
-          "whether ask the subject to open the video during the experiment",
-      },
-      showPoint: {
-        type: jsPsych.plugins.parameterType.BOOL,
-        default: false,
-        description: "whether show the predcition point or not",
+        description: "Whether to initialize the webcam and webgazer, or not.",
       },
       doCalibration: {
         type: jsPsych.plugins.parameterType.BOOL,
-        default: false,
-        description: "whether do calibration in this trial",
+        default: true,
+        description: "Whether to perform the calibration routine.",
       },
-      showVideoInterTrial: {
+      showVideoCalibration: {
+        type: jsPsych.plugins.parameterType.BOOL,
+        default: false,
+        description: "Whether to show the video feed during calibration.",
+      },
+      calibrationMessage: {
+        type: jsPsych.plugins.parameterType.HTML_STRING,
+        pretty_name: "Calibration message",
+        default: undefined,
+        description: "The optional message shown before calibration.",
+      },
+      showCalibrationMessage: {
         type: jsPsych.plugins.parameterType.BOOL,
         default: true,
-        description: "whether show video intertrial",
+        description: "Whether to show a message prior to calibration.",
       },
-      calibrationMethod: {
+      doValidation: {
+        type: jsPsych.plugins.parameterType.BOOL,
+        default: true,
+        description: "whether this is the intertrial Validation or not",
+      },
+      showVideoValidation: {
+        type: jsPsych.plugins.parameterType.BOOL,
+        default: false,
+        description: "Whether to show the video feed during Validation.",
+      },
+      validationMessage: {
         type: jsPsych.plugins.parameterType.HTML_STRING,
-        default: "watch",
-        description: "click or watch",
+        pretty_name: "Validation message",
+        default: undefined,
+        description: "The optional message shown before validation.",
       },
-      calibrationDots: {
+      showValidationMessage: {
+        type: jsPsych.plugins.parameterType.BOOL,
+        default: true,
+        description: "Whether to show a message prior to Validation.",
+      },
+      showWebgazerPrediction: {
+        type: jsPsych.plugins.parameterType.BOOL,
+        default: false,
+        description: "Whether show the current webgazer prediction.",
+      },
+      calibrationPoints: {
         type: jsPsych.plugins.parameterType.INT,
-        default: 5,
-        description: "how many calibration dots",
+        default: [
+          [10, 50],
+          [10, 90],
+          [10, 10],
+          [50, 10],
+          [50, 50],
+          [50, 90],
+          [90, 10],
+          [90, 50],
+          [90, 90],
+        ],
+        description: "List of calibration point coordinates.",
       },
       calibrationDuration: {
         type: jsPsych.plugins.parameterType.INT,
@@ -349,15 +320,20 @@ jsPsych.plugins["eye-tracking"] = (function () {
         description:
           "how long the calibration dot appears on the screen in seconds",
       },
-      doValidation: {
-        type: jsPsych.plugins.parameterType.BOOL,
-        default: false,
-        description: "whether do validation in this trial",
-      },
-      validationDots: {
+      validationPoints: {
         type: jsPsych.plugins.parameterType.INT,
-        default: 5,
-        description: "how many validation dots",
+        default: [
+          [30, 50],
+          [30, 70],
+          [30, 30],
+          [50, 30],
+          [50, 50],
+          [50, 70],
+          [70, 30],
+          [80, 50],
+          [70, 70],
+        ],
+        description: "List of validation point coordinates.",
       },
       validationDuration: {
         type: jsPsych.plugins.parameterType.INT,
@@ -375,10 +351,24 @@ jsPsych.plugins["eye-tracking"] = (function () {
         default: 0.7,
         description: "criterion set for the validation ",
       },
-      face_detect_threshold: {
+      shufflePoints: {
+        type: jsPsych.plugins.parameterType.BOOL,
+        pretty_name: "Shuffle calibration / validation points",
+        default: true,
+        description:
+          "Whether to randomly shuffle the order of calibration and validation points.",
+      },
+      doFaceDetection: {
+        type: jsPsych.plugins.parameterType.BOOL,
+        pretty_name: "Run face detection setup",
+        default: true,
+        description:
+          "Whether to show the face detection screen, where subjects can adjust their camera to get a good face detection score.",
+      },
+      faceDetectionThreshold: {
         type: jsPsych.plugins.parameterType.IMAGE,
         pretty_name: "Face Detection Threshold",
-        default: 0.8,
+        default: 0.7,
         description:
           "A value between 0-1 representing the quality of the face detection that must be achieved before moving to calibration.",
       },
@@ -397,56 +387,60 @@ jsPsych.plugins["eye-tracking"] = (function () {
             callback(err);
             return;
           }
-          //webgazer.setRegression('ridge');
           webgazer.setRegression("threadedRidge");
-          //webgazer.params.showVideo = trial.doVideo;
-          var faceOk = false;
-          var done = false;
-          function detectFaceLoop() {
-            if (!done) {
-              show_video_detect_message();
-              var wg_container = display_element.querySelector(
-                "#webgazer-calibrate-container"
-              );
-              var score = check_face_score();
-              wg_container.querySelector(
-                "#video-detect-quality-inner"
-              ).style.width = score * 100 + "%";
-            }
-            if (score > trial.face_detect_threshold) {
-              if (!faceOk) {
-                faceOk = true;
-                console.log("Face-detection score above threshold.");
+
+          if (trial.doFaceDetection) {
+            var faceOk = false;
+            var done = false;
+            function detectFaceLoop() {
+              if (!done) {
+                show_video_detect_message();
+                var wg_container = display_element.querySelector(
+                  "#webgazer-calibrate-container"
+                );
+                var score = check_face_score();
+                wg_container.querySelector(
+                  "#video-detect-quality-inner"
+                ).style.width = score * 100 + "%";
               }
-            } else {
-              if (score < trial.face_detect_threshold) {
-                if (faceOk) {
-                  faceOk = false;
-                  console.log("Face-detection score below threshold.");
+              if (score > trial.faceDetectionThreshold) {
+                if (!faceOk) {
+                  faceOk = true;
+                  console.log("Face-detection score above threshold.");
+                }
+              } else {
+                if (score < trial.faceDetectionThreshold) {
+                  if (faceOk) {
+                    faceOk = false;
+                    console.log("Face-detection score below threshold.");
+                  }
                 }
               }
+              // Stop loop if done
+              if (!done) {
+                requestAnimationFrame(detectFaceLoop);
+              } else {
+                display_element.innerHTML = "";
+                console.log("Face-detection loop stopped. (inside)");
+                callback();
+                console.log("Callback called.");
+              }
             }
-            // Stop loop if done
-            if (!done) {
-              requestAnimationFrame(detectFaceLoop);
-            } else {
-              display_element.innerHTML = "";
-              console.log("Face-detection loop stopped. (inside)");
-              callback();
-              console.log("Callback called.");
-            }
+            // continue if spacebar pressed
+            var onkeyup = function (e) {
+              if (e.keyCode == 32 && faceOk) {
+                console.log("Face-detection done.");
+                done = true;
+                removeEventListener("keyup", onkeyup);
+              }
+            };
+            addEventListener("keyup", onkeyup);
+            console.log("Face-detection loop started.");
+            requestAnimationFrame(detectFaceLoop);
+          } else {
+            // No face detection
+            callback();
           }
-          // continue if spacebar pressed
-          var onkeyup = function (e) {
-            if (e.keyCode == 32 && faceOk) {
-              console.log("Face-detection done.");
-              done = true;
-              removeEventListener("keyup", onkeyup);
-            }
-          };
-          addEventListener("keyup", onkeyup);
-          console.log("Face-detection loop started.");
-          requestAnimationFrame(detectFaceLoop);
         });
       } else {
         webgazer.resume();
@@ -457,9 +451,10 @@ jsPsych.plugins["eye-tracking"] = (function () {
     function startCalibration(callback) {
       if (trial.doCalibration) {
         options = {
-          numPoints: trial.calibrationDots,
+          points: trial.calibrationPoints,
+          shufflePoints: trial.shufflePoints,
           duration: trial.calibrationDuration,
-          showPoint: trial.showPoint,
+          showWebgazerPrediction: trial.showWebgazerPrediction,
         };
         calibrate(display_element, options, function (data) {
           callback(data);
@@ -473,12 +468,12 @@ jsPsych.plugins["eye-tracking"] = (function () {
       addEventListener("keyup", onkeyup);
       if (trial.doValidation) {
         options = {
-          numPoints: trial.validationDots,
+          points: trial.validationPoints,
+          shufflePoints: trial.shufflePoints,
           duration: trial.validationDuration,
-          showPoint: trial.showPoint,
+          showWebgazerPrediction: trial.showWebgazerPrediction,
           tol: trial.validationTol,
           threshold: trial.validationThreshold,
-          //doVideo: trial.doValidationVideo
         };
         //begin validation
         validate(display_element, options, function (data) {
@@ -526,7 +521,7 @@ jsPsych.plugins["eye-tracking"] = (function () {
         <div id='video-detect-quality-container' style='width:700px; height: 20px; background-color:#ccc; position: relative;'>
         <div id='video-detect-quality-inner' style='width:0%; height:20px; background-color: #5c5;'></div>
         <div id='video-detect-threshold' style='width: 1px; height: 20px; background-color: #f00; position: absolute; top:0; left:
-        ${trial.face_detect_threshold * 100}%;'>
+        ${trial.faceDetectionThreshold * 100}%;'>
         </div>
         </div>
         </div>
@@ -537,6 +532,8 @@ jsPsych.plugins["eye-tracking"] = (function () {
       return webgazer.getTracker().clm.getScore();
     }
 
+    // Trial procedure
+    // 1. Start webgazer, possibly initializing it. This function currently also includes the optional face detection screen.
     startWebgazer(function (err) {
       if (err) {
         console.log(err);
@@ -546,52 +543,56 @@ jsPsych.plugins["eye-tracking"] = (function () {
         location.reload();
         return;
       }
-      webgazer.showFaceOverlay(trial.showVideoInterTrial);
-      webgazer.showFaceFeedbackBox(trial.showVideoInterTrial);
-      webgazer.showVideo(trial.showVideoInterTrial || trial.doVideo);
-      optionalWait(
-        trial.doCalibration && trial.IsInterTrial,
-        1000,
-        function () {
-          optionalMessage_interTrial(
-            display_element,
-            trial.doCalibration && trial.IsInterTrial,
-            function () {
-              webgazer.showFaceOverlay(trial.showVideoInterTrial);
-              webgazer.showFaceFeedbackBox(trial.showVideoInterTrial);
-              webgazer.showVideo(trial.doVideo);
-              console.log("Starting calibration");
-              startCalibration(function (calibrationData) {
-                optionalWait(
-                  trial.doCalibration && trial.doValidation,
-                  1000,
+      optionalWait(trial.doCalibration, 1000, function () {
+        // 2. Calibration
+        // 2.1 Show (optional) pre-calibration message
+        optionalMessage(
+          display_element,
+          trial.calibrationMessage,
+          trial.doCalibration && trial.showCalibrationMessage,
+          function () {
+            webgazer.showFaceOverlay(trial.showVideoCalibration);
+            webgazer.showFaceFeedbackBox(trial.showVideoCalibration);
+            webgazer.showVideo(trial.showVideoCalibration);
+            console.log("Starting calibration");
+            // 2.2 Calibration routine
+            startCalibration(function (calibrationData) {
+              webgazer.showFaceOverlay(false);
+              webgazer.showFaceFeedbackBox(false);
+              webgazer.showVideo(false);
+              optionalWait(trial.doValidation, 1000, function () {
+                // 3. Validation
+                // 3.1 Show (optional) pre-validation message
+                optionalMessage(
+                  display_element,
+                  trial.validationMessage,
+                  trial.doValidation && trial.showValidationMessage,
                   function () {
-                    optionalMessage(
-                      display_element,
-                      trial.doCalibration && trial.doValidation,
-                      function () {
-                        console.log("Starting validation");
-                        startValidation(function (validationData) {
-                          var data = {
-                            validationPoints: JSON.stringify(
-                              validationData.points
-                            ),
-                            // validationData.points,
-                            accuracy: computeAccuracy(validationData.points),
-                            // calibrationHistory: calibrationData.history,
-                            validationnHistory: validationData.history,
-                          };
-                          jsPsych.finishTrial(data);
-                        });
-                      }
-                    );
+                    console.log("Starting validation");
+                    // 3.2 Validation routine
+                    webgazer.showVideo(trial.showVideoValidation);
+                    webgazer.showFaceOverlay(trial.showVideoValidation);
+                    webgazer.showFaceFeedbackBox(trial.showVideoValidation);
+
+                    startValidation(function (validationData) {
+                      var data = {
+                        validationPoints: JSON.stringify(validationData.points),
+                        accuracy: computeAccuracy(validationData.points),
+                        validationnHistory: validationData.history,
+                      };
+                      webgazer.showPredictionPoints(false);
+                      webgazer.showVideo(false);
+                      webgazer.showFaceFeedbackBox(false);
+                      webgazer.showFaceOverlay(false);
+                      jsPsych.finishTrial(data);
+                    });
                   }
                 );
               });
-            }
-          );
-        }
-      );
+            });
+          }
+        );
+      });
     });
   };
 

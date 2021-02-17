@@ -18,8 +18,6 @@
   <body>
     <script src="js/webgazer/webgazer.js"></script>
     <script>
-      const nCalibrationDots = 12;
-      const nValidationDots = 9;
       const calibrationDuration = 3;
       const validationDuration = 2;
 
@@ -89,16 +87,36 @@
             doInit: () => init_flag(),
             doCalibration: true,
             doValidation: true,
-            calibrationDots: nCalibrationDots,
             calibrationDuration: calibrationDuration,
-            validationDots: nValidationDots,
             validationDuration: validationDuration,
+            showVideoCalibration: false,
+            showVideoValidation: false,
             validationTol: validationTols[calibrationAttempt],
-            face_detect_threshold: 0.7,
-            showPoint: true,
+            doFaceDetection: true,
+            faceDetectionThreshold: 0.7,
+            showWebgazerPrediction: false,
+            calibrationMessage: `<div>
+                <h1>Step 2: Calibration</h1>
+                We will now perform the eye tracking calibration.<br>
+                During calibration, you will see a series of dots like this <span id="calibration_dot_instruction"></span> on the screen.<br>
+                Your task is simply to stare directly at each dot until it disappears.<br>
+                Then, quickly move your eyes to the next dot and repeat.<br>
+                <br><br>
+                Press <b>SPACE BAR</b> to start.
+                </div>`,
+            showCalibrationMessage: true,
+            showValidationMessage: true,
+            validationMessage: `<div>
+                <h1>Step 3: Validation</h1>
+                Now, we need to validate the calibration. Again, please stare at each dot until it turns <b><font color='green'>green</font></b> and disappears.<br>
+                A dot may turn <b><font color='yellow'>yellow</font></b>, indicating that you don't seem to be staring directly at it.<br>
+                Try to prevent this from happening!
+                <br><br>
+                Press <b>SPACE BAR</b> to start.
+                </div>`,
             on_finish: function (data) {
               console.log(
-                "Hit ratio check",
+                "Hit ratio check failed?",
                 JSON.parse(data.validationPoints)[0].hitRatio == null
               );
               console.log(
@@ -114,10 +132,14 @@
                 );
               } else {
                 calibrationAttempt++;
+                console.log("Accuracy was", data.accuracy);
                 if (
                   data.accuracy >= validationAccuracies[calibrationAttempt - 1]
-                )
+                ) {
                   success = true;
+                } else {
+                  console.log("Starting another calibration attempt.");
+                }
                 if (!success && calibrationAttempt == calibrationMax) {
                   jsPsych.endExperiment(
                     `<h1>Apologies</h1>

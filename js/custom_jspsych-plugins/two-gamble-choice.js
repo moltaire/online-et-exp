@@ -42,20 +42,19 @@ jsPsych.plugins["two-gamble-choice"] = (function () {
         type: jsPsych.plugins.parameterType.INT,
         pretty_name: "Feedback duration.",
         default: 500,
-        description:
-          "Duration for which the feedback frame is shown (ms).",
+        description: "Duration for which the feedback frame is shown (ms).",
       },
       doEyeTracking: {
         type: jsPsych.plugins.parameterType.BOOL,
-        pretty_name: 'eye-tracking',
+        pretty_name: "eye-tracking",
         default: true,
-        description: 'Whether to do the eye tracking during this trial.'
+        description: "Whether to do the eye tracking during this trial.",
       },
       showPredictionPoints: {
         type: jsPsych.plugins.parameterType.BOOL,
-        pretty_name: 'webgazer-prediction-point',
+        pretty_name: "webgazer-prediction-point",
         default: true,
-        description: 'Whether to show the current webgazer-prediction.'
+        description: "Whether to show the current webgazer-prediction.",
       },
     },
   };
@@ -78,8 +77,9 @@ jsPsych.plugins["two-gamble-choice"] = (function () {
     };
 
     // Create canvas
-    var new_html = `<div id="two-gamble-choice-canvas"><canvas id="jsPsych-canvas-stimulus" height="${window.innerHeight * 0.9
-      }" width="${window.innerHeight * 0.9}"></canvas></div>`;
+    var new_html = `<div id="two-gamble-choice-canvas"><canvas id="jsPsych-canvas-stimulus" height="${
+      window.innerHeight * 0.9
+    }" width="${window.innerHeight * 0.9}"></canvas></div>`;
 
     // draw
     display_element.innerHTML = new_html;
@@ -185,7 +185,7 @@ jsPsych.plugins["two-gamble-choice"] = (function () {
         probability_ypos,
         radius,
         "ForestGreen",
-        "FireBrick",
+        "FireBrick"
       );
       // -- Magnitude
       drawBarchart(
@@ -196,7 +196,7 @@ jsPsych.plugins["two-gamble-choice"] = (function () {
         width,
         height,
         "ForestGreen",
-        "FireBrick",
+        "FireBrick"
       );
       // Right gamble
       // Frame
@@ -215,7 +215,7 @@ jsPsych.plugins["two-gamble-choice"] = (function () {
         probability_ypos,
         radius,
         "ForestGreen",
-        "FireBrick",
+        "FireBrick"
       );
       // -- Magnitude
       drawBarchart(
@@ -226,14 +226,14 @@ jsPsych.plugins["two-gamble-choice"] = (function () {
         width,
         height,
         "ForestGreen",
-        "FireBrick",
+        "FireBrick"
       );
     };
 
     // function to end trial when it is time
     var end_trial = function () {
-
       if (trial.doEyeTracking) {
+        webgazer.showPredictionPoints(false);
         webgazer.pause();
         clearInterval(eye_tracking_interval);
       }
@@ -253,13 +253,13 @@ jsPsych.plugins["two-gamble-choice"] = (function () {
 
       // gather the data to store for the trial
       var trial_data = {
-        "rt": response.rt,
-        "key_press": response.key,
-        "pL": trial.pL,
-        "mL": trial.mL,
-        "pR": trial.pR,
-        "mR": trial.mR,
-        "eyeData": JSON.stringify(eyeData),
+        rt: response.rt,
+        key_press: response.key,
+        pL: trial.pL,
+        mL: trial.mL,
+        pR: trial.pR,
+        mR: trial.mR,
+        eyeData: JSON.stringify(eyeData),
       };
 
       // clear the display
@@ -333,26 +333,24 @@ jsPsych.plugins["two-gamble-choice"] = (function () {
       webgazer.showFaceOverlay(false);
       webgazer.showFaceFeedbackBox(false);
       var starttime = performance.now();
-      var eye_tracking_interval = setInterval(
-        function () {
-          var pos = webgazer.getCurrentPrediction();
-          if (pos) {
-
-            var relativePosX = pos.x / screen.width;
-            var relativePosY = pos.y / screen.height;
-            var relativePosX2 = pos.x / innerWidth;
-            var relativePosY2 = pos.y / innerHeight;
-            eyeData.history.push({
-              // 'x': pos.x,
-              //  'y': pos.y,
-              'relative-x': relativePosX,
-              'relative-y': relativePosY,
-              'relative-x2': relativePosX2,
-              'relative-y2': relativePosY2,
-              'elapse-time': performance.now() - starttime
-            });
-          }
-        }, 20);
+      var eye_tracking_interval = setInterval(function () {
+        var pos = webgazer.getCurrentPrediction();
+        if (pos) {
+          var relativePosX = pos.x / screen.width;
+          var relativePosY = pos.y / screen.height;
+          var relativePosX2 = pos.x / innerWidth;
+          var relativePosY2 = pos.y / innerHeight;
+          eyeData.history.push({
+            // 'x': pos.x,
+            //  'y': pos.y,
+            "relative-x": relativePosX,
+            "relative-y": relativePosY,
+            "relative-x2": relativePosX2,
+            "relative-y2": relativePosY2,
+            "elapse-time": performance.now() - starttime,
+          });
+        }
+      }, 20);
     }
 
     // start the response listener
