@@ -512,20 +512,25 @@ jsPsych.plugins["eye-tracking"] = (function () {
         "#webgazer-calibrate-container"
       );
 
-      wg_container.innerHTML =
-        "<div style='position: absolute; top: 50%; left: calc(50% - 350px); transform: translateY(-50%); width:700px;'>" +
-        "<p>To start, you need to position your head so that the webcam has a good view of your eyes.</p>" +
-        "<img src='img/et-instructions/et-instruct_1.png' width=100%>" +
-        "<p>Use the video in the upper-left corner as a guide. Center your face in the box.</p>" +
-        "<p>Once you reached the necessary quality as indicated by the meter below, press the <b>SPACE BAR</b> to continue</p>" +
-        "<p>Quality of detection:</p>" +
-        "<div id='video-detect-quality-container' style='width:700px; height: 20px; background-color:#ccc; position: relative;'>" +
-        "<div id='video-detect-quality-inner' style='width:0%; height:20px; background-color: #5c5;'></div>" +
-        "<div id='video-detect-threshold' style='width: 1px; height: 20px; background-color: #f00; position: absolute; top:0; left:" +
-        trial.face_detect_threshold * 100 +
-        "%;'></div>" +
-        "</div>" +
-        "</div>";
+      wg_container.innerHTML = `
+        <div style='position: absolute; top: 50%; left: calc(50% - 400px); transform: translateY(-50%); width:800px;'>
+        <p>To start, you need to position your head so that the webcam has a good view of your eyes.</p>
+        <p>Use the video in the upper-left corner as a guide. Center your face in the box.</p>
+        <p>The goal is to align the green face-mask with your face, <b>especially your eyes</b> like this:</p>
+        <img src='img/et-instructions/et-instruct_0.png' width=20%>
+        <p>Use these tips to achieve a good quality fit:<p>
+        <img src='img/et-instructions/et-instruct_1.png' width=100%>
+        <p>Try to change the lighting if you cannot achieve a good quality fit.</p>
+        <p>Once you reached the necessary quality as indicated by the meter below, press the <b>SPACE BAR</b> to continue</p>
+        <p>Quality of detection:</p>
+        <div id='video-detect-quality-container' style='width:700px; height: 20px; background-color:#ccc; position: relative;'>
+        <div id='video-detect-quality-inner' style='width:0%; height:20px; background-color: #5c5;'></div>
+        <div id='video-detect-threshold' style='width: 1px; height: 20px; background-color: #f00; position: absolute; top:0; left:
+        ${trial.face_detect_threshold * 100}%;'>
+        </div>
+        </div>
+        </div>
+        `;
     }
 
     function check_face_score() {
@@ -536,7 +541,7 @@ jsPsych.plugins["eye-tracking"] = (function () {
       if (err) {
         console.log(err);
         alert(
-          "Error: cannot start webgazer.\nIs webcam blocked? This app needs webcam."
+          "Error: Cannot start eye-tracking.\nHave you permitted access to the webcam? This study needs to use the webcam."
         );
         location.reload();
         return;

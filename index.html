@@ -25,25 +25,22 @@
 
       var timeline = [];
 
-      var et_instruct_img = [];
-      for (var i = 0; i < 2; i++) {
-        et_instruct_img.push("img/et-instructions/et-instruct_" + i + ".png");
-      }
-
       /** full screen */
       var fullscreenEnter = {
         type: "fullscreen",
         message: `<div>
-                Before we begin, please close any unnecessary programs or applications on your computer. <br>
-                This will help the study run more smoothly. <br>
-                Also, please close any browser tabs that could produce popups or alerts that would interfere with the study. <br>
-                Finally, once the study has started, please <b>DO NOT EXIT</b> fullscreen mode. <br>   
-                <br><br>
-                The study will switch to full screen mode when you press the button below.<br>
-                When you are ready to begin, press the button.
-                <br><br>
+<h1>Welcome to this study</h1>
+<p>Before we begin, please</p>
+<ul>
+<li style="text-align: left;"><strong>close any unnecessary programs</strong></li>
+<li style="text-align: left;"><strong>close any other browser tabs </strong>that could produce<strong> popups </strong>or<strong> alerts</strong></li>
+<li style="text-align: left;"><strong>mute </strong>your <strong>cell phone</strong> and make sure that it will not distract you</li>
+</ul>
+<p>This will help run this study more smoothly.</p>
+<p>The study will switch to fullscreen mode when you press the button below. <br />Once this study has started, <strong>please do not exit fullscreen mode</strong>.</p>
                 </div>`,
         fullscreen_mode: true,
+        button_label: "Switch to fullscreen and continue",
         on_finish: function () {
           document.body.style.cursor = "none";
         },
@@ -52,68 +49,21 @@
       var eyeTrackingInstruction1 = {
         type: "html-keyboard-response",
         stimulus: `<div>
-                <font size=120%; font color='green';>Calibration & Validation</font>
-                <br><br><br>
-                Before we begin with the study, we need to turn on and adjust your webcam for eye-tracking.<br>
-                There are two parts to this process. The first part is calibration and the second part is validation.
-                <br><br><br>
-                During calibration, you will see a series of dots like this <span id="calibration_dot_instruction"></span> appear on the screen, each for 3 seconds.<br>
-                Your task is simply to stare directly at each dot until it disappears.<br>
-                Then, quickly move your eyes to the next dot and repeat.
-                <br><br><br>
-                Validation is basically the same as calibration. You simply need to stare at each dot until it turns <b><font color='green'>green</font></b> and disappears.<br>
-                During validation, the dot may turn <b><font color='orange'>orange</font></b>, indicating that you don't seem to be staring directly at it.<br>
-                Try to keep this from happening! 
-                <br><br>
-                When you are ready, press the SPACE BAR to continue.
+                <h1>Eye-tracking</h1>
+<p><br>This study uses your webcam to infer your eye-movements.<br>
+  Before we begin with the study, we need to turn on and adjust your webcam for eye-tracking.</p>
+<p>There are three parts to this process:</p>
+<ol>
+<li style="text-align: left;"><strong>Camera setup</strong></li>
+<li style="text-align: left;"><strong>Calibration</strong></li>
+<li style="text-align: left;"><strong>Validation</strong></li>
+</ol>
+<p>Press the <strong><em>SPACE BAR</em></strong> to proceed start with <em>Step 1: Camera setup</em>.</p>
                 </div>`,
         post_trial_gap: 500,
         choices: ["spacebar"],
       };
 
-      var eyeTrackingInstruction2 = {
-        type: "html-keyboard-response",
-        stimulus: `<div>
-                <font size=120%; font color='green';>Calibration & Validation </font>
-                <br><br><br>
-                When the calibration begins, you will see a video feed with your face at the top left corner of your screen like this: 
-                <br><br><br>
-                <img height="220px" width="270px" src="${et_instruct_img[0]}">
-                <br><br><br>
-                Try to keep your entire face within the box. When your face is in a good position, the box will turn <b><font color='green'>green</font></b>. <br>
-                <font size=5px; font color = 'red';> <b>NOTE</b>: the video feed only appears during calibration.</font>
-                <br><br><br>
-                <font size=5px; >When you are ready, press the <b>SPACE BAR</b> to continue.</font>
-                </div>`,
-        post_trial_gap: 500,
-        choices: ["spacebar"],
-      };
-
-      var eyeTrackingNote = {
-        type: "html-keyboard-response",
-        stimulus: `<div>
-                <font size=120%; font color='green';>Calibration & Validation</font>
-                <br><br><br>
-                <font size = 5px font color="orange">There are several <b>IMPORTANT</b> tips that are useful for passing the calibration task:<br></font>
-                <img height="200px" width="1000px" src="${et_instruct_img[1]}">
-                <br><br><br>
-                <div style="text-align-last:left">
-                In addition to the tips in the figure: <br>
-                (1) Use your eyes to look around the screen and try to avoid moving your head. <br>
-                (2) Try to keep lights in front of you rather than behind you so that the webcam can clearly see your face. Avoid sitting with a window behind you. <br>
-                (3) After you have made these adjustments, check again that your face fits nicely within the box on the video feed and that the box is green. <br></div>
-                <br><br>
-                <font size=5px; font color = 'red';> <b>NOTE</b>:  <br>
-                If you are back on this page, it means the calibration and validation did not work as well as we would like.  <br>
-                Please read the tips above again, make any adjustments, and try again.  <br>
-                There are only <b>THREE</b> chances to get this right.  <br>
-                Otherwise, the study cannot proceed and you will only receive 50 cents for participating.  </font>
-                <br><br><br>
-                <font size=5px; >When you are ready, press the <b>SPACE BAR</b> to bring up the video feed and make these adjustments. </font>
-                </div>`,
-        post_trial_gap: 500,
-        choices: ["spacebar"],
-      };
       //eye tracking parameters
       var calibrationMax = 3;
       var calibrationAttempt = 0;
@@ -134,7 +84,6 @@
       /** first we need a calibration and validation step before entering into the main choice task */
       var initial_eye_calibration = {
         timeline: [
-          eyeTrackingNote,
           {
             type: "eye-tracking",
             doInit: () => init_flag(),
@@ -145,6 +94,7 @@
             validationDots: nValidationDots,
             validationDuration: validationDuration,
             validationTol: validationTols[calibrationAttempt],
+            face_detect_threshold: 0.7,
             showPoint: true,
             on_finish: function (data) {
               console.log(
@@ -157,7 +107,10 @@
               );
               if (JSON.parse(data.validationPoints)[0].hitRatio == null) {
                 jsPsych.endExperiment(
-                  "The study has ended. You may have exited full screen mode, or your browser may not be compatible with our study."
+                  `<h1>Apologies</h1>
+                    The webcam calibration has failed. We can't proceed with the study.<br>
+                    You will be compensated for trying to participate.
+                    `
                 );
               } else {
                 calibrationAttempt++;
@@ -167,7 +120,10 @@
                   success = true;
                 if (!success && calibrationAttempt == calibrationMax) {
                   jsPsych.endExperiment(
-                    `Sorry, unfortunately the webcam calibration has failed.  We can't proceed with the study.  </br> You will receive 50 cents for making it this far. Thank you for signing up!`
+                    `<h1>Apologies</h1>
+                    The webcam calibration has failed. We can't proceed with the study.<br>
+                    You will be compensated for trying to participate.
+                    `
                   );
                 }
               }
@@ -223,15 +179,21 @@
         repetitions: 1,
       };
 
+      images = [
+        "img/et-instructions/et-instruct_0.png",
+        "img/et-instructions/et-instruct_1.png",
+        "img/task-instructions/gamble-instruction.png",
+      ];
+
       jsPsych.init({
         timeline: [
           fullscreenEnter,
           eyeTrackingInstruction1,
-          eyeTrackingInstruction2,
           initial_eye_calibration,
           taskInstruction,
           trial_procedure,
         ],
+        preload_images: images,
         on_finish: function () {
           jsPsych.data.displayData("json");
         },
