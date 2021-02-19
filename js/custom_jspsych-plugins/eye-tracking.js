@@ -265,7 +265,15 @@ jsPsych.plugins["eye-tracking"] = (function () {
       calibrationMessage: {
         type: jsPsych.plugins.parameterType.HTML_STRING,
         pretty_name: "Calibration message",
-        default: undefined,
+        default: `<div>
+                      <h1>Step 2: Calibration</h1>
+                      We will now perform the eye tracking calibration.<br>
+                      During calibration, you will see a series of dots like this <span id="calibration_dot_instruction"></span> on the screen.<br>
+                      Your task is simply to stare directly at each dot until it disappears.<br>
+                      Then, quickly move your eyes to the next dot and repeat.<br>
+                      <br><br>
+                      Press <b>SPACE BAR</b> to start.
+                      </div>`,
         description: "The optional message shown before calibration.",
       },
       showCalibrationMessage: {
@@ -286,7 +294,14 @@ jsPsych.plugins["eye-tracking"] = (function () {
       validationMessage: {
         type: jsPsych.plugins.parameterType.HTML_STRING,
         pretty_name: "Validation message",
-        default: undefined,
+        default: `<div>
+                      <h1>Step 3: Validation</h1>
+                      Now, we need to validate the calibration. Again, please stare at each dot until it turns <b><font color='green'>green</font></b> and disappears.<br>
+                      A dot may turn <b><font color='yellow'>yellow</font></b>, indicating that you don't seem to be staring directly at it.<br>
+                      Try to prevent this from happening!
+                      <br><br>
+                      Press <b>SPACE BAR</b> to start.
+                      </div>`,
         description: "The optional message shown before validation.",
       },
       showValidationMessage: {
@@ -376,14 +391,15 @@ jsPsych.plugins["eye-tracking"] = (function () {
         type: jsPsych.plugins.parameterType.HTML_STRING,
         pretty_name: "Face-detection message",
         default: `<h1>Step 1: Camera setup</h1>
-        <p>To start, you need to position your head so that the webcam has a good view of your eyes.</p>
-        <p>Use the video in the upper-left corner as a guide. Center your face in the box.</p>
-        <p>The goal is to align the green face-mask with your face, <b>especially your eyes</b> like this:</p>
-        <img src='img/et-instructions/et-instruct_0.png' width=20%>
-        <p>Use these tips to achieve a good quality fit:<p>
-        <img src='img/et-instructions/et-instruct_1.png' width=100%>
-        <p>Try to change the lighting if you cannot achieve a good quality fit.</p>
-        <p>Once you reached the necessary quality as indicated by the meter below, press the <b>SPACE BAR</b> to continue</p>`,
+                      <p>To start, you need to position your head so that the webcam has a good view of your eyes.</p>
+                      <p>Use the video in the upper-left corner as a guide. Center your face in the box.</p>
+                      <p>The goal is to align the green face-mask with your face, <b>especially your eyes</b> like this:</p>
+                      <img src='img/et-instructions/et-instruct_0.png' width=20%>
+                      <p>Use these tips to achieve a good quality fit:<p>
+                      <img src='img/et-instructions/et-instruct_1.png' width=100%>
+                      <p>Try to change the lighting if you cannot achieve a good quality fit.</p>
+                      <p>Sometimes, slowly moving your head to "slide into" the mask can also improve the fit.</p>
+                      <p>Once you reached the necessary quality as indicated by the meter below, press the <b>SPACE BAR</b> to continue</p>`,
         description: "The message shown during the face-detection step.",
       },
     },

@@ -1,0 +1,35 @@
+.container-multi-choice {
+  /* overflow-y: auto; */
+  position: relative;
+  display: flex;
+  margin: auto;
+  justify-content: center;
+}
+
+.container-multi-choice-column {
+  /* width: 90%; */
+  position: relative;
+  flex: 1 1 80%;
+  /* max-width: 95%; this is mainly an IE 10-11 fix */
+  width: 100%;
+  /* width: calc(1/2*100% - (1 - 1/2)*10px); */
+  /* flex: 80%;  */
+  padding: 20px;
+  /* height: 100px;
+  width: 100px; */
+  margin: 200px;
+}
+
+#multiattribute-choices-stimulus-left {
+  position: relative;
+  border: 3px solid;
+  /* margin-left:30px,  */
+  /* right:12.5px */
+}
+
+#multiattribute-choices-stimulus-right {
+  position: relative;
+  border: 3px solid;
+  /* left: 12.5vw;   */
+  /* margin-right:30px  */
+}
