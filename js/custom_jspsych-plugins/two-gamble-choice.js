@@ -267,7 +267,8 @@ jsPsych.plugins["two-gamble-choice"] = (function () {
         3 * radius,
         gambleCanvas.height * 0.7
       );
-      //code before the pause
+
+      // code before the pause
       setTimeout(function () {
         end_trial();
       }, trial.feedback_duration);
