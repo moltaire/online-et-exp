@@ -10,6 +10,7 @@
     <script src="js/utilsHelper.js"></script>
     <script src="js/custom_jspsych-plugins/eye-tracking.js"></script>
     <script src="js/custom_jspsych-plugins/two-gamble-choice.js"></script>
+    <script src="js/custom_jspsych-plugins/two-gamble-sequence.js"></script>
 
     <link rel="stylesheet" href="js/jspsych-6.2.0/css/jspsych.css" />
     <link rel="stylesheet" href="js/custom_css/eye-tracking.css" />
@@ -80,11 +81,13 @@
       var validationAccuracies = [0.8, 0.7, 0.6];
 
       /** first we need a calibration and validation step before entering into the main choice task */
-      var initial_eye_calibration = {
+      var eyeTrackingInitialSetup = {
         timeline: [
           {
             type: "eye-tracking",
             doInit: () => init_flag(),
+            calibrationPoints: [[50, 50]],
+            validationPoints: [[50, 50]],
             doCalibration: true,
             doValidation: true,
             calibrationDuration: calibrationDuration,
@@ -165,13 +168,13 @@
         loop_function: () => calibrationAttempt < calibrationMax && !success,
       };
 
-      var taskInstruction = {
+      var freeGambleInstruction = {
         type: "html-keyboard-response",
         on_start: function () {
           webgazer.pause(), webgazer.clearData();
         },
         stimulus: `<div>
-                <font size=120%;>Task Instruction </font>
+                <font size=120%;>Task 1: Gamble choice</font>
                 <br><br><br>
                 <img width="800px" height="600px" src="img/task-instructions/gamble-instruction.png">
                 <br><br>
@@ -199,26 +202,26 @@
         trial_duration: 1000,
       };
 
-      gambleChoice = {
+      freeGambleChoice = {
         type: "two-gamble-choice",
         stimulus: function () {
           stim = {
             p0: jsPsych.randomization.sampleWithoutReplacement(
               [0.6, 0.7, 0.8, 0.9],
               1
-            ),
+            )[0],
             p1: jsPsych.randomization.sampleWithoutReplacement(
               [0.1, 0.2, 0.3, 0.4],
               1
-            ),
+            )[0],
             m0: jsPsych.randomization.sampleWithoutReplacement(
               [0.1, 0.2, 0.3, 0.4],
               1
-            ),
+            )[0],
             m1: jsPsych.randomization.sampleWithoutReplacement(
               [0.6, 0.7, 0.8, 0.9],
               1
-            ),
+            )[0],
           };
           return stim;
         },
@@ -226,9 +229,88 @@
         trial_duration: 10000,
       };
 
-      trial_procedure = {
-        timeline: [fixation, gambleChoice],
-        repetitions: 10,
+      freeGambleProcedure = {
+        timeline: [fixation, freeGambleChoice],
+        repetitions: 5,
+      };
+
+      // Sequential presentation gamble
+      var seqGambleInstruction = {
+        type: "html-keyboard-response",
+        on_start: function () {
+          webgazer.pause(), webgazer.clearData();
+        },
+        stimulus: `<div>
+                <font size=120%;>Task 2: Sequential presentation </font>
+                <br><br><br>
+                In the next trials, you will make the same choices between two risky gambles.<br>
+                The difference is that now the information is shown to you sequentially.<br>
+                After the presentation sequence, you will be prompted to make a choice <b>within 1 second</b>!
+                <br><br>
+                When you are ready, press the <b>SPACE BAR</b> to start.
+                </div>`,
+        post_trial_gap: 1000,
+        choices: ["spacebar"],
+      };
+
+      seqGambleChoice = {
+        type: "two-gamble-sequence",
+        stimulus: function () {
+          stim = {
+            p0: jsPsych.randomization.sampleWithoutReplacement(
+              [0.6, 0.7, 0.8, 0.9],
+              1
+            )[0],
+            p1: jsPsych.randomization.sampleWithoutReplacement(
+              [0.1, 0.2, 0.3, 0.4],
+              1
+            )[0],
+            m0: jsPsych.randomization.sampleWithoutReplacement(
+              [0.1, 0.2, 0.3, 0.4],
+              1
+            )[0],
+            m1: jsPsych.randomization.sampleWithoutReplacement(
+              [0.6, 0.7, 0.8, 0.9],
+              1
+            )[0],
+          };
+          return stim;
+        },
+        sequence: jsPsych.timelineVariable("sequence"),
+        choices: ["F", "J"],
+        choiceTimeout: 1000,
+        doEyeTracking: true,
+      };
+
+      var sequence_altwise = {
+        durations: [1500, 1000, 1500, 1000],
+        alternatives: [0, 1, 0, 1],
+        attributes: ["all", "all", "all", "all"],
+      };
+
+      var sequence_attwise = {
+        durations: [1500, 1000, 1500, 1000],
+        alternatives: ["all", "all", "all", "all"],
+        attributes: ["p", "m", "p", "m"],
+      };
+
+      var sequence_single = {
+        durations: [1500, 1000, 1500, 1000],
+        alternatives: [0, 1, 1, 0],
+        attributes: ["p", "m", "p", "m"],
+      };
+
+      timeline_variables = [
+        { sequence: sequence_altwise },
+        { sequence: sequence_attwise },
+        { sequence: sequence_single },
+      ];
+
+      seqGambleProcedure = {
+        timeline: [fixation, seqGambleChoice],
+        timeline_variables: timeline_variables,
+        randomize_order: true,
+        repetitions: 2,
       };
 
       images = [
@@ -241,9 +323,11 @@
         timeline: [
           fullscreenEnter,
           eyeTrackingInstruction1,
-          initial_eye_calibration,
-          taskInstruction,
-          trial_procedure,
+          eyeTrackingInitialSetup,
+          freeGambleInstruction,
+          freeGambleProcedure,
+          seqGambleInstruction,
+          seqGambleProcedure,
         ],
         preload_images: images,
         on_finish: function () {

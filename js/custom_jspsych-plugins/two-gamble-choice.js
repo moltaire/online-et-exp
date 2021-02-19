@@ -76,33 +76,12 @@ jsPsych.plugins["two-gamble-choice"] = (function () {
       key: null,
     };
 
-    // Create canvas
-    var new_html = `<div id="two-gamble-choice-canvas"><canvas id="jsPsych-canvas-stimulus" height="${
-      window.innerHeight * 0.9
-    }" width="${window.innerHeight * 0.9}"></canvas></div>`;
-
-    // draw
-    display_element.innerHTML = new_html;
-    var gambleCanvas = document.getElementById("jsPsych-canvas-stimulus");
-
-    var body = document.getElementsByClassName("jspsych-display-element")[0];
-
-    // Save the current settings to be restored later
-    var originalMargin = body.style.margin;
-    var originalPadding = body.style.padding;
-    var originalBackgroundColor = body.style.backgroundColor;
-
-    //Remove the margins and paddings of the display_element
-    body.style.margin = 0;
-    body.style.padding = 0;
-
-    // Set canvas width and height to window width and height
-    gambleCanvas.width = window.innerWidth * 0.9;
-    gambleCanvas.height = window.innerHeight * 0.9;
-
-    // Remove the margins and padding of the canvas
-    gambleCanvas.style.margin = 0;
-    gambleCanvas.style.padding = 0;
+    //--------Set up Canvas start-------
+    var gambleCanvas = document.createElement("canvas");
+    gambleCanvas.width = screen.width;
+    gambleCanvas.height = screen.height;
+    console.log(screen.width, "x", screen.height);
+    display_element.appendChild(gambleCanvas);
 
     function drawPiechart(
       ctx,
@@ -238,11 +217,6 @@ jsPsych.plugins["two-gamble-choice"] = (function () {
         clearInterval(eye_tracking_interval);
       }
 
-      // Restore the settings to JsPsych defaults
-      body.style.margin = originalMargin;
-      body.style.padding = originalPadding;
-      body.style.backgroundColor = originalBackgroundColor;
-
       // kill any remaining setTimeout handlers
       jsPsych.pluginAPI.clearAllTimeouts();
 
@@ -338,15 +312,9 @@ jsPsych.plugins["two-gamble-choice"] = (function () {
         if (pos) {
           var relativePosX = pos.x / screen.width;
           var relativePosY = pos.y / screen.height;
-          var relativePosX2 = pos.x / innerWidth;
-          var relativePosY2 = pos.y / innerHeight;
           eyeData.history.push({
-            // 'x': pos.x,
-            //  'y': pos.y,
             "relative-x": relativePosX,
             "relative-y": relativePosY,
-            "relative-x2": relativePosX2,
-            "relative-y2": relativePosY2,
             "elapse-time": performance.now() - starttime,
           });
         }
