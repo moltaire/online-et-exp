@@ -27,6 +27,8 @@
     const calibrationDuration = 3; // this is in s
     const validationDuration = 2; // this is in s
     const fixationDuration = 1000; // this is in ms
+
+    const doEyeTracking = false;
     const validateAfter = 10; // repeat validation and possibly trigger recalibration after `validateAfter` trials
     const showWebgazerPrediction = true; // For debugging, show the current webgazer predictions in eye tracking trials and during eye tracking setup
 
@@ -100,7 +102,7 @@
     var condFixVal = {
       timeline: [fixationValidation, recalibrationProcedure],
       conditional_function: function () {
-        if (Math.round(trialCounter % validateAfter) == 0) {
+        if (doEyeTracking && (Math.round(trialCounter % validateAfter) == 0)) {
           return true;
         } else {
           return false;
@@ -111,7 +113,7 @@
     var condFixNoVal = {
       timeline: [fixation],
       conditional_function: function () {
-        if (Math.round(trialCounter % validateAfter) != 0) {
+        if (!doEyeTracking || (Math.round(trialCounter % validateAfter) != 0)) {
           return true;
         } else {
           return false;
@@ -308,10 +310,11 @@
       stimulus: `<div>
                             <font size=120%;>Task 2: Sequential presentation </font>
                             <br><br><br>
-                            In the next trials, you will make the same choices between two risky gambles.<br>
-                            The difference is that now the information is shown to you sequentially.<br>
-                            After the presentation sequence, you will be prompted to make a choice <b>within 1 second</b>!
-                            <br><br>
+                            In the next trials, you will make choices between two risky gambles.<br>
+                            Information over the gambles is shown to you sequentially.<br>
+                            After the presentation sequence, you will be prompted to make a choice <b>within 1 second</b>!<br>
+                            Press the <b>F</b> key to choose the left gamble and the <b>J</b> key to choose the right gamble.<br>
+                            Place your fingers on these keys now.</b>
                             When you are ready, press the <b>SPACE BAR</b> to start.
                             </div>`,
       post_trial_gap: 1000,
@@ -347,7 +350,7 @@
       on_finish: function () {
         trialCounter++;
       },
-      doEyeTracking: true,
+      doEyeTracking: false,
     };
 
     var sequence_altwise = {
@@ -362,16 +365,16 @@
       attributes: ["p", "m", "p", "m"],
     };
 
-    var sequence_single = {
-      durations: [1500, 1000, 1500, 1000],
-      alternatives: [0, 1, 1, 0],
-      attributes: ["p", "m", "p", "m"],
-    };
+    // var sequence_single = {
+    //   durations: [1500, 1000, 1500, 1000],
+    //   alternatives: [0, 1, 1, 0],
+    //   attributes: ["p", "m", "p", "m"],
+    // };
 
     timeline_variables = [
       { sequence: sequence_altwise },
       { sequence: sequence_attwise },
-      { sequence: sequence_single },
+      // { sequence: sequence_single },
     ];
 
     seqGambleProcedure = {
@@ -471,14 +474,14 @@
     jsPsych.init({
       timeline: [
         fullscreenEnter,
-        foodRatingInstruction,
-        foodRatingProcedure,
-        eyeTrackingInstruction1,
-        eyeTrackingInitialSetup,
-        foodChoiceInstruction,
-        foodChoiceProcedure,
-        freeGambleInstruction,
-        freeGambleProcedure,
+        // foodRatingInstruction,
+        // foodRatingProcedure,
+        // eyeTrackingInstruction1,
+        // eyeTrackingInitialSetup,
+        // foodChoiceInstruction,
+        // foodChoiceProcedure,
+        // freeGambleInstruction,
+        // freeGambleProcedure,
         seqGambleInstruction,
         seqGambleProcedure,
       ],

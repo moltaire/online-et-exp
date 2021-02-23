@@ -128,9 +128,8 @@ jsPsych.plugins["two-gamble-sequence"] = (function () {
 
     //--------Set up Canvas start-------
     var gambleCanvas = document.createElement("canvas");
-    gambleCanvas.width = screen.width;
-    gambleCanvas.height = screen.height;
-    console.log(screen.width, "x", screen.height);
+    gambleCanvas.width = 0.95 * screen.width;
+    gambleCanvas.height = 0.95 * screen.height;
     display_element.appendChild(gambleCanvas);
 
     function drawPiechart(
