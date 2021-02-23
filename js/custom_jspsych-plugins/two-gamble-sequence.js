@@ -187,32 +187,36 @@ jsPsych.plugins["two-gamble-sequence"] = (function () {
       // Background segment
       ctx.fillStyle = backColor;
       ctx.beginPath();
-      ctx.fillRect(x, y, width, height);
+      ctx.fillRect(x - 0.5 * width, y - 0.5 * height, width, height);
 
       // Filled segment
       ctx.fillStyle = fillColor;
       ctx.beginPath();
-      ctx.fillRect(x, y + (1 - m) * height, width, m * height);
+      ctx.fillRect(
+        x - 0.5 * width,
+        y - 0.5 * height + (1 - m) * height,
+        width,
+        m * height
+      );
       ctx.closePath();
     }
 
     var drawStims = function (i) {
       // Frames
       // Left
-      // ctx.strokeStyle = stimFrameColor;
       ctx.lineWidth = 2;
       ctx.strokeRect(
-        left_xpos - boxWidthScale * radius,
-        gambleCanvas.height * 0.2,
-        2 * boxWidthScale * radius,
-        gambleCanvas.height * 0.7
+        left_xpos - boxWidthScale * radius, // frame top left x-coordinate
+        gambleCanvas.height * 0.1, // frame top left y-coordinate
+        2 * boxWidthScale * radius, // frame width
+        gambleCanvas.height * 0.8 // frame height. Use 2x + height = 1 for symmetric layout
       );
       // Right
       ctx.strokeRect(
-        right_xpos - boxWidthScale * radius,
-        gambleCanvas.height * 0.2,
-        2 * boxWidthScale * radius,
-        gambleCanvas.height * 0.7
+        right_xpos - boxWidthScale * radius, // frame top left x-coordinate
+        gambleCanvas.height * 0.1, // frame top left y-coordinate
+        2 * boxWidthScale * radius, // frame width
+        gambleCanvas.height * 0.8 // frame height
       );
 
       // Loop over alternatives and draw everything
@@ -245,7 +249,7 @@ jsPsych.plugins["two-gamble-sequence"] = (function () {
             drawBarchart(
               ctx,
               stimuli[alt][1],
-              xpos[alt] - 0.5 * width,
+              xpos[alt],
               magnitude_ypos,
               width,
               height,
@@ -329,10 +333,10 @@ jsPsych.plugins["two-gamble-sequence"] = (function () {
       ctx.strokeStyle = trial.feedbackColor;
       ctx.lineWidth = 5;
       ctx.strokeRect(
-        xposFeedback - boxWidthScale * radius,
-        gambleCanvas.height * 0.2,
-        2 * boxWidthScale * radius,
-        gambleCanvas.height * 0.7
+        xposFeedback - boxWidthScale * radius, // frame top left x-coordinate
+        gambleCanvas.height * 0.1, // frame top left y-coordinate
+        2 * boxWidthScale * radius, // frame width
+        gambleCanvas.height * 0.8 // frame height
       );
 
       // Code before the pause
@@ -404,9 +408,9 @@ jsPsych.plugins["two-gamble-sequence"] = (function () {
     for (alt = 0; alt < 2; alt++) {
       ctx.strokeRect(
         xpos[alt] - boxWidthScale * radius,
-        gambleCanvas.height * 0.2,
+        gambleCanvas.height * 0.1,
         2 * boxWidthScale * radius,
-        gambleCanvas.height * 0.7
+        gambleCanvas.height * 0.8
       );
     }
 

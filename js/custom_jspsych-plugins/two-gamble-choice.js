@@ -137,12 +137,17 @@ jsPsych.plugins["two-gamble-choice"] = (function () {
       // Background segment
       ctx.fillStyle = backColor;
       ctx.beginPath();
-      ctx.fillRect(x, y, width, height);
+      ctx.fillRect(x - 0.5 * width, y - 0.5 * height, width, height);
 
       // Filled segment
       ctx.fillStyle = fillColor;
       ctx.beginPath();
-      ctx.fillRect(x, y + (1 - m) * height, width, m * height);
+      ctx.fillRect(
+        x - 0.5 * width,
+        y - 0.5 * height + (1 - m) * height,
+        width,
+        m * height
+      );
       ctx.closePath();
     }
 
@@ -151,9 +156,9 @@ jsPsych.plugins["two-gamble-choice"] = (function () {
       // Frame
       ctx.strokeRect(
         left_xpos - 1.5 * radius,
-        gambleCanvas.height * 0.2,
+        gambleCanvas.height * 0.1,
         3 * radius,
-        gambleCanvas.height * 0.7
+        gambleCanvas.height * 0.8
       );
       // -- Probability
       drawPiechart(
@@ -169,7 +174,7 @@ jsPsych.plugins["two-gamble-choice"] = (function () {
       drawBarchart(
         ctx,
         trial.mL,
-        left_xpos - 0.5 * width,
+        left_xpos,
         magnitude_ypos,
         width,
         height,
@@ -180,9 +185,9 @@ jsPsych.plugins["two-gamble-choice"] = (function () {
       // Frame
       ctx.strokeRect(
         right_xpos - 1.5 * radius,
-        gambleCanvas.height * 0.2,
+        gambleCanvas.height * 0.1,
         3 * radius,
-        gambleCanvas.height * 0.7
+        gambleCanvas.height * 0.8
       );
 
       // -- Probability
@@ -199,7 +204,7 @@ jsPsych.plugins["two-gamble-choice"] = (function () {
       drawBarchart(
         ctx,
         trial.mR,
-        right_xpos - 0.5 * width,
+        right_xpos,
         magnitude_ypos,
         width,
         height,
@@ -262,9 +267,9 @@ jsPsych.plugins["two-gamble-choice"] = (function () {
       ctx.lineWidth = 5;
       ctx.strokeRect(
         xpos - 1.5 * radius,
-        gambleCanvas.height * 0.2,
+        gambleCanvas.height * 0.1,
         3 * radius,
-        gambleCanvas.height * 0.7
+        gambleCanvas.height * 0.8
       );
 
       // code before the pause
