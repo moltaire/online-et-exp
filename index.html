@@ -136,6 +136,7 @@
             <p>The study will switch to fullscreen mode when you press the button below. <br />Once this study has started, <strong>please do not exit fullscreen mode</strong>.</p>
                             </div>`,
       fullscreen_mode: true,
+      on_finish: () => (document.body.style.cursor = "none"),
       button_label: "Switch to fullscreen and continue",
     };
 
